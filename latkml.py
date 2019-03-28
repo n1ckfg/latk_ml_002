@@ -12,9 +12,18 @@ import svgpathtools as svg # https://github.com/mathandy/svgpathtools
 
 paths, attributes, svg_attributes = svg.svg2paths2('test.svg')
 
+at_color = 16
+at_error_threshold=10
+at_line_threshold=0
+at_line_reversion_threshold=10
+autotraceCmd = ""
+
 osName = platform.system()
-autotracePath = "autotrace" # Linux
 if (osName == "Windows"):
-	autotracePath = "C:\\Program Files\\AutoTrace\\autotrace.exe"
-elif (osName == "Mac"):
-	autotracePath == "/Applications/autotrace.app/Contents/MacOS/autotrace"
+	autotraceCmd = "\"C:\\Program Files\\AutoTrace\\autotrace\" -background-color=#000000 -color=16 -centerline -error-threshold=10 -line-threshold=0 -line-reversion-threshold=10 -output=%~nx1.svg -output-format=svg %1"
+elif (osName == "Darwin"): # Mac
+	autotraceCmd = "/Applications/autotrace.app/Contents/MacOS/autotrace -background-color=#000000 -color=16 -centerline -error-threshold=10 -line-threshold=0 -line-reversion-threshold=10 -output=%~nx1.svg -output-format=svg %1"
+else: # assume Linux
+	autotraceCmd = "autotrace -background-color=#000000 -color=16 -centerline -error-threshold=10 -line-threshold=0 -line-reversion-threshold=10 -output=%~nx1.svg -output-format=svg %1"
+
+os.system(autotraceCmd)
