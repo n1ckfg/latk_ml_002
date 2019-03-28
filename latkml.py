@@ -17,4 +17,4 @@ autotracePath = "autotrace" # Linux
 if (osName == "Windows"):
 	autotracePath = "C:\\Program Files\\AutoTrace\\autotrace.exe"
 elif (osName == "Mac"):
-	autotracePath == "/Applications/AutoTrace.app/Contents/MacOs/AutoTrace"
+	autotracePath == "/Applications/autotrace.app/Contents/MacOS/autotrace"
