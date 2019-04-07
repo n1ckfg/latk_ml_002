@@ -3,9 +3,8 @@ from latk import *
 
 def getCoordFromPathPoint(pt):
     point = str(pt)
-    point = point.replace("j","")
     point = point.replace("(","")
-    point = point.replace(")","")
+    point = point.replace("j)","")
     point = point.split("+")
     x = float(point[0])
     y = float(point[1])
@@ -26,6 +25,8 @@ def getPathLength(path):
 
 la = Latk(init=True)
 paths, attr = svg2paths("test.svg")
+pathLimit = 0.2
+minPathPoints = 10
 
 for path in paths:
     numPoints = getPathLength(path)
@@ -35,8 +36,20 @@ for path in paths:
         for i in range(numRange):
             pt = path.point(i/(numPoints-1))
             point = getCoordFromPathPoint(pt)
-            coords.append((point[0]/100.0, point[1]/100.0, 0))
-        la.setCoords(coords)
+            coord = (point[0]/100.0, point[1]/-100.0, 0)
+            if (i == 0):
+                coords.append(coord)
+            else:
+                lastCoord = coords[len(coords)-1]
+                if getDistance2D(coord, lastCoord) < pathLimit:
+                    coords.append(coord)
+                else:
+                    if (len(coords) >= minPathPoints):
+                        la.setCoords(coords)
+                    coords = []
+                    coords.append(coord)
+        if (len(coords) >= minPathPoints):
+            la.setCoords(coords)
 
 la.clean(epsilon=0.0001)
 la.write("test.latk")
