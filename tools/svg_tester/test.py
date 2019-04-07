@@ -1,4 +1,7 @@
+import sys
 from svgpathtools import *
+
+sys.path.insert(0, '../../latk.py')
 from latk import *
 
 def getCoordFromPathPoint(pt):
