@@ -10,3 +10,6 @@
 [submodule "autotrace"]
 	path = autotrace
 	url = https://github.com/n1ckfg/autotrace
+[submodule "ffmpeg-python"]
+	path = ffmpeg-python
+	url = https://github.com/n1ckfg/ffmpeg-python
