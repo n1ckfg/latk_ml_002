@@ -19,5 +19,9 @@ git submodule foreach git pull origin master
 
 pip install -r requirements.txt
 
+# NOTE install autotrace manually
+brew install imagemagick
+brew install ffmpeg
+
 #cd build
 #./build.command

@@ -7,6 +7,10 @@ git submodule foreach git checkout master
 git submodule foreach git reset --hard
 git submodule foreach git pull origin master
 
+rem NOTE install autotrace manually
+rem NOTE install imagemagick manually
+rem NOTE install ffmpeg manually
+
 rem cd build
 rem build
 
