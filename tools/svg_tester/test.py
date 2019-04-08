@@ -1,5 +1,6 @@
 import sys
 from svgpathtools import *
+from PIL import Image
 
 sys.path.insert(0, '../../latk.py')
 from latk import *
@@ -26,10 +27,33 @@ def getPathLength(path):
     lastPoint = getCoordFromPathPoint(path.point(1))
     return getDistance2D(firstPoint, lastPoint)
 
+def getPixelLoc(pixels, x, y):
+    col = list(pixels[int(x), int(y)])
+    return (col[0]/255.0, col[1]/255.0, col[2]/255.0)
+
+def loadImage(url):
+    img = Image.open(url)
+    img = img.convert('RGB')
+    return img.load() # pixels
+
+def restoreXY(point):
+    x = int(point.co[0] * 255.0)
+    y = int(point.co[1] * -255.0)
+    if (x < 0):
+        x = 0
+    elif (x > 255):
+        x = 255
+    if (y < 0):
+        y = 0
+    elif (y > 255):
+        y = 255
+    return (x, y)    
+
 la = Latk(init=True)
 paths, attr = svg2paths("test.svg")
-pathLimit = 0.2
-minPathPoints = 10
+pathLimit = 0.05
+minPathPoints = 3
+epsilon = 0.00005
 
 for path in paths:
     numPoints = getPathLength(path)
@@ -39,7 +63,7 @@ for path in paths:
         for i in range(numRange):
             pt = path.point(i/(numPoints-1))
             point = getCoordFromPathPoint(pt)
-            coord = (point[0]/100.0, point[1]/-100.0, 0)
+            coord = (point[0]/255.0, point[1]/-255.0, 0)
             if (i == 0):
                 coords.append(coord)
             else:
@@ -47,12 +71,26 @@ for path in paths:
                 if getDistance2D(coord, lastCoord) < pathLimit:
                     coords.append(coord)
                 else:
+                    coords = rdp(coords, epsilon=epsilon)
                     if (len(coords) >= minPathPoints):
                         la.setCoords(coords)
                     coords = []
                     coords.append(coord)
+        coords = rdp(coords, epsilon=epsilon)            
         if (len(coords) >= minPathPoints):
             la.setCoords(coords)
 
-la.clean(epsilon=0.0001)
+img_depth = loadImage("test-depth.png")
+img_rgb = loadImage("test-rgb.png")
+
+for layer in la.layers:
+    for frame in layer.frames:
+        for stroke in frame.strokes:
+            firstCoord = restoreXY(stroke.points[0])
+            stroke.color = getPixelLoc(img_rgb, firstCoord[0], firstCoord[1])
+            for point in stroke.points:
+                coord = restoreXY(point)
+                depth = getPixelLoc(img_depth, coord[0], coord[1])[0]
+                point.co = (point.co[0], point.co[1], depth)
+
 la.write("test.latk")
