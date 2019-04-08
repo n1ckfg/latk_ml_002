@@ -91,6 +91,6 @@ for layer in la.layers:
             for point in stroke.points:
                 coord = restoreXY(point)
                 depth = getPixelLoc(img_depth, coord[0], coord[1])[0]
-                point.co = (point.co[0], point.co[1], depth)
+                point.co = (-point.co[0]/10.0, depth/10.0, point.co[1]/10.0)
 
 la.write("test.latk")
