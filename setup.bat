@@ -14,4 +14,6 @@ rem NOTE install ffmpeg manually
 rem cd build
 rem build
 
+echo "* Install autotrace manually *"
+
 @pause

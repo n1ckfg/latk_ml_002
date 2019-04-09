@@ -17,7 +17,7 @@ git submodule foreach git checkout master
 git submodule foreach git reset --hard
 git submodule foreach git pull origin master
 
-pip install -r requirements.txt
+pip install -r requirements_osx.txt
 
 # NOTE install autotrace manually
 brew install imagemagick
@@ -25,3 +25,5 @@ brew install ffmpeg
 
 #cd build
 #./build.command
+
+echo "* Install autotrace manually in /Applications *"
