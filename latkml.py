@@ -24,9 +24,9 @@ from PIL import Image # https://gist.github.com/n1ckfg/58b5425a1b81aa3c60c3d3af7
 # *** Step 4/5: Convert Pix2pix png output to tga and run Autotrace. ***
 at_path = "autotrace" # linux doesn't need path handled
 if (osName == "Windows"):
-	at_path = "\"C:\\Program Files\\AutoTrace\\autotrace\""
+    at_path = "\"C:\\Program Files\\AutoTrace\\autotrace\""
 elif (osName == "Darwin"): # Mac
-	at_path = "/Applications/autotrace.app/Contents/MacOS/autotrace"
+    at_path = "/Applications/autotrace.app/Contents/MacOS/autotrace"
 
 at_bgcolor = "#000000"
 at_color = 16
@@ -36,39 +36,46 @@ at_line_reversion_threshold=10
 
 at_cmd = " -background-color=" + str(at_bgcolor) + " -color=" + str(at_color) + " -centerline -error-threshold=" + str(at_error_threshold) + "-line-threshold=" + str(at_line_threshold) + " -line-reversion-threshold=" + str(at_line_reversion_threshold)
 
-im_path = "convert"
-if (osName == "Windows"):
-	im_path = "magick"
+os.chdir("./pix2pix-tensorflow/files/output/images")
 
-os.system("cd ./pix2pix-tensorflow/files/output/images")
-os.system("rm *.tga")
-
-if (osName == "Windows"):
-	os.system("for %%i in (%1\\*-outputs.png) do " + im_path + " %%i -colorspace RGB -colorspace sRGB -depth 8 -alpha off %%~nxi-rgb.png")
-	os.system("for %%i in (%1\\*.tga) do " + at_path + at_cmd + " -output=%%~nxi.svg -output-format=svg %%i")
-else:
-	os.system("for file in *-outputs.png; do " + im_path + " $file $file.tga; done")
-	os.system("for file in *.tga; do " + at_path + " $file " + at_cmd + " -output-format=svg -output-file $file.svg; done")
-
-os.system("rm *.tga")
-
-
-
-
-	
-
-
-os.system(autotraceCmd)
+try:
+    if (osName == "Windows"):
+        os.system("dir")
+        os.system("del *.tga")
+        #os.system("for %i in (*-outputs.png) do magick %i -colorspace RGB -colorspace sRGB -depth 8 -alpha off %~nxi.tga")
+        #os.system("for %i in (*.tga) do " + at_path + at_cmd + " -output=%~nxi.svg -output-format=svg %i")
+        os.system("del *.tga")
+    else:
+        os.system("ls")
+        os.system("rm *.tga")
+        os.system("for file in *-outputs.png; do convert $file $file.tga; done")
+        os.system("for file in *.tga; do " + at_path + " $file " + at_cmd + " -output-format=svg -output-file $file.svg; done")
+        os.system("rm *.tga")
+except:
+    pass
 
 
 # *** Step 5/5: Create final latk file from svg and image output. ***
 def getCoordFromPathPoint(pt):
     point = str(pt)
-    point = point.replace("(","")
-    point = point.replace("j)","")
+    point = point.replace("(", "")
+    point = point.replace("j)", "")
     point = point.split("+")
-    x = float(point[0])
-    y = float(point[1])
+
+    x = 0
+    y = 0
+
+    try:
+        point[0] = point[0].replace("j", "")
+        x = float(point[0])
+    except:
+        pass
+    try:
+        point[1] = point[1].replace("j", "")
+        y = float(point[1])
+    except:
+        pass
+
     return (x, y)
 
 def getDistance2D(v1, v2):
@@ -107,7 +114,7 @@ def restoreXY(point):
     return (x, y)    
 
 la = Latk(init=True)
-paths, attr = svg2paths("test.svg")
+paths, attr = svg2paths("frame_00050-outputs.png.tga.svg")
 pathLimit = 0.05
 minPathPoints = 3
 epsilon = 0.00005
@@ -137,8 +144,8 @@ for path in paths:
         if (len(coords) >= minPathPoints):
             la.setCoords(coords)
 
-img_depth = loadImage("test-depth.png")
-img_rgb = loadImage("test-rgb.png")
+img_depth = loadImage("frame_00050-inputs.png")
+img_rgb = loadImage("frame_00050-targets.png")
 
 for layer in la.layers:
     for frame in layer.frames:
