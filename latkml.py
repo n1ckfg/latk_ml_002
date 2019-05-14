@@ -10,52 +10,6 @@ from latk import *
 from svgpathtools import *  # https://github.com/mathandy/svgpathtools
 from PIL import Image # https://gist.github.com/n1ckfg/58b5425a1b81aa3c60c3d3af7703eb3b
 
-
-# *** Step 1/5: Extract frames from source movie with ffmpeg. ***
-#
-
-# *** Step 2/5: Resize to 512x256 with imagemagick or pil. ***
-#
-
-# *** Step 3/5: Process with Pix2pix. ***
-#os.system("python ./pix2pix-tensorflow/pix2pix.py --mode test --output_dir ./pix2pix-tensorflow/files/output --input_dir ./pix2pix-tensorflow/files/input --checkpoint ./pix2pix-tensorflow/files/model")
-
-
-# *** Step 4/5: Convert Pix2pix png output to tga and run Autotrace. ***
-at_path = "autotrace" # linux doesn't need path handled
-if (osName == "Windows"):
-    at_path = "\"C:\\Program Files\\AutoTrace\\autotrace\""
-elif (osName == "Darwin"): # Mac
-    at_path = "/Applications/autotrace.app/Contents/MacOS/autotrace"
-
-at_bgcolor = "#000000"
-at_color = 16
-at_error_threshold=10
-at_line_threshold=0
-at_line_reversion_threshold=10
-
-at_cmd = " -background-color=" + str(at_bgcolor) + " -color=" + str(at_color) + " -centerline -error-threshold=" + str(at_error_threshold) + "-line-threshold=" + str(at_line_threshold) + " -line-reversion-threshold=" + str(at_line_reversion_threshold)
-
-os.chdir("./pix2pix-tensorflow/files/output/images")
-
-try:
-    if (osName == "Windows"):
-        os.system("dir")
-        os.system("del *.tga")
-        #os.system("for %i in (*-outputs.png) do magick %i -colorspace RGB -colorspace sRGB -depth 8 -alpha off %~nxi.tga")
-        #os.system("for %i in (*.tga) do " + at_path + at_cmd + " -output=%~nxi.svg -output-format=svg %i")
-        os.system("del *.tga")
-    else:
-        os.system("ls")
-        os.system("rm *.tga")
-        os.system("for file in *-outputs.png; do convert $file $file.tga; done")
-        os.system("for file in *.tga; do " + at_path + " $file " + at_cmd + " -output-format=svg -output-file $file.svg; done")
-        os.system("rm *.tga")
-except:
-    pass
-
-
-# *** Step 5/5: Create final latk file from svg and image output. ***
 def getCoordFromPathPoint(pt):
     point = str(pt)
     point = point.replace("(", "")
@@ -98,7 +52,27 @@ def getPixelLoc(pixels, x, y):
 def loadImage(url):
     img = Image.open(url)
     img = img.convert('RGB')
-    return img.load() # pixels
+    return img
+
+def loadPixels(img):
+    return img.load()
+
+def saveImage(img, url): # https://stackoverflow.com/questions/14452824/how-can-i-save-an-image-with-pil
+    img.save(url)
+
+def newImage(width, height):
+    return Image.new('RGB', (width, height))
+
+def cropImage(img, x1, y1, x2, y2):
+    box = (x1, y1, x2, y2)
+    return img.crop(box)
+
+def scaleImage(img, w, h):
+    return img.resize((w, h), Image.ANTIALIAS)
+
+def pasteImage(source, dest, x1, y1, x2, y2):
+    box = (x1, y1, x2, y2)
+    dest.paste(source, box)
 
 def restoreXY(point):
     x = int(point.co[0] * 255.0)
@@ -111,8 +85,75 @@ def restoreXY(point):
         y = 0
     elif (y > 255):
         y = 255
-    return (x, y)    
+    return (x, y)  
 
+
+input_video="test.mp4"
+
+at_path = "autotrace" # linux doesn't need path handled
+ff_path = "ffmpeg"
+if (osName == "Windows"):
+    at_path = "\"C:\\Program Files\\AutoTrace\\autotrace\""
+    ff_path = "\"C:\\Util\\ffmpeg\\bin\\ffmpeg\""
+elif (osName == "Darwin"): # Mac
+    at_path = "/Applications/autotrace.app/Contents/MacOS/autotrace"
+
+
+# *** Step 1/5: Extract frames from source movie with ffmpeg. ***
+os.makedirs("./pix2pix-tensorflow/files/input")
+os.chdir("./pix2pix-tensorflow/files/input")
+os.system(ff_path + " -i " + input_video + " -vf fps=12 image-%05d.png")
+
+
+# *** Step 2/5: Resize to 512x256 with pil. ***
+# TODO loop through all files
+# https://code-maven.com/listing-a-directory-using-python
+sourceImgUrl = "test.png"
+sourceImg = loadImage(sourceImgUrl)
+sourceDepthImg = cropImage(sourceImg, 80, 120, 560, 600)
+sourceRgbImg = cropImage(sourceImg, 720, 120, 1200, 600)
+sourceDepthImg = scaleImage(sourceDepthImg, 256, 256)
+sourceRgbImg = scaleImage(sourceRgbImg, 256, 256)
+destImg = newImage(512, 256)
+pasteImage(sourceDepthImg, destImg, 0, 0, 256, 256)
+pasteImage(sourceRgbImg, destImg, 256, 0, 512, 256)
+saveImage(destImg, sourceImgUrl)
+
+
+# *** Step 3/5: Process with Pix2pix. ***
+os.chdir("../..")
+os.system("python pix2pix.py --mode test --output_dir files/output --input_dir files/input --checkpoint files/model")
+
+
+# *** Step 4/5: Convert Pix2pix png output to tga and run Autotrace. ***
+at_bgcolor = "#000000"
+at_color = 16
+at_error_threshold=10
+at_line_threshold=0
+at_line_reversion_threshold=10
+
+at_cmd = " -background-color=" + str(at_bgcolor) + " -color=" + str(at_color) + " -centerline -error-threshold=" + str(at_error_threshold) + "-line-threshold=" + str(at_line_threshold) + " -line-reversion-threshold=" + str(at_line_reversion_threshold)
+
+os.chdir("files/output/images")
+
+try:
+    if (osName == "Windows"):
+        os.system("dir")
+        os.system("del *.tga")
+        #os.system("for %i in (*-outputs.png) do magick %i -colorspace RGB -colorspace sRGB -depth 8 -alpha off %~nxi.tga")
+        #os.system("for %i in (*.tga) do " + at_path + at_cmd + " -output=%~nxi.svg -output-format=svg %i")
+        os.system("del *.tga")
+    else:
+        os.system("ls")
+        os.system("rm *.tga")
+        os.system("for file in *-outputs.png; do convert $file $file.tga; done")
+        os.system("for file in *.tga; do " + at_path + " $file " + at_cmd + " -output-format=svg -output-file $file.svg; done")
+        os.system("rm *.tga")
+except:
+    pass
+
+
+# *** Step 5/5: Create final latk file from svg and image output. ***
 la = Latk(init=True)
 
 # TODO loop through all files
@@ -148,8 +189,8 @@ for path in paths:
         if (len(coords) >= minPathPoints):
             la.setCoords(coords)
 
-img_depth = loadImage("frame_00050-inputs.png")
-img_rgb = loadImage("frame_00050-targets.png")
+img_depth = loadPixels(loadImage("frame_00050-inputs.png"))
+img_rgb = loadPixels(loadImage("frame_00050-targets.png"))
 
 for layer in la.layers:
     for frame in layer.frames:
