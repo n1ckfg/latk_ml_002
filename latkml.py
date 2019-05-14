@@ -6,18 +6,13 @@ sys.path.insert(0, './latk.py')
 #sys.path.insert(1, './pix2pix-tensorflow')
 
 from latk import *
-#import pix2pix
 from svgpathtools import *  # https://github.com/mathandy/svgpathtools
 from PIL import Image # https://gist.github.com/n1ckfg/58b5425a1b81aa3c60c3d3af7703eb3b
 
 # 1. PIX2PIX
-'''
-python pix2pix.py \
-  --mode test \
-  --output_dir files/output \
-  --input_dir files/input \
-  --checkpoint files/model
+os.system("python ./pix2pix-tensorflow/pix2pix.py --mode test --output_dir ./pix2pix-tensorflow/files/output --input_dir ./pix2pix-tensorflow/files/input --checkpoint ./pix2pix-tensorflow/files/model")
 
+'''
 cd files/output/images
 rm *.tga
 for file in *-outputs.png; do convert $file $file.tga; done
