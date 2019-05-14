@@ -6,6 +6,7 @@ import platform
 osName = platform.system()
 
 import os
+import fnmatch
 from latk import *
 from svgpathtools import *  # https://github.com/mathandy/svgpathtools
 from PIL import Image # https://gist.github.com/n1ckfg/58b5425a1b81aa3c60c3d3af7703eb3b
@@ -88,7 +89,10 @@ def restoreXY(point):
     return (x, y)  
 
 
-input_video="test.mp4"
+# ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+input_video = "test.mov"
+input_fps = "12"
+input_url = "./pix2pix-tensorflow/files/input"
 
 at_path = "autotrace" # linux doesn't need path handled
 ff_path = "ffmpeg"
@@ -99,33 +103,45 @@ elif (osName == "Darwin"): # Mac
     at_path = "/Applications/autotrace.app/Contents/MacOS/autotrace"
 
 
-# *** Step 1/5: Extract frames from source movie with ffmpeg. ***
-os.makedirs("./pix2pix-tensorflow/files/input")
-os.chdir("./pix2pix-tensorflow/files/input")
-os.system(ff_path + " -i " + input_video + " -vf fps=12 image-%05d.png")
+# ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+print("\n\n*** Step 1/5: Extract frames from source movie with ffmpeg. ***\n")
+try:
+    os.makedirs(input_url)
+except:
+    print("Input directory already exists.")
+os.chdir(input_url)
+if (osName == "Windows"):
+    os.system("del *.png")
+else:
+    os.system("rm *.png")
+os.system(ff_path + " -i " + input_video + " -vf fps=" + input_fps + " image-%05d.png")
+files = fnmatch.filter(os.listdir("."), "*.png")
 
-
-# *** Step 2/5: Resize to 512x256 with pil. ***
-# TODO loop through all files
+# ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+print("\n\n*** Step 2/5: Resize to 512x256 with pil. ***\n")
 # https://code-maven.com/listing-a-directory-using-python
-sourceImgUrl = "test.png"
-sourceImg = loadImage(sourceImgUrl)
-sourceDepthImg = cropImage(sourceImg, 80, 120, 560, 600)
-sourceRgbImg = cropImage(sourceImg, 720, 120, 1200, 600)
-sourceDepthImg = scaleImage(sourceDepthImg, 256, 256)
-sourceRgbImg = scaleImage(sourceRgbImg, 256, 256)
-destImg = newImage(512, 256)
-pasteImage(sourceDepthImg, destImg, 0, 0, 256, 256)
-pasteImage(sourceRgbImg, destImg, 256, 0, 512, 256)
-saveImage(destImg, sourceImgUrl)
+for i, file in enumerate(files):
+    sourceImgUrl = file
+    sourceImg = loadImage(sourceImgUrl)
+    sourceDepthImg = cropImage(sourceImg, 80, 120, 560, 600)
+    sourceRgbImg = cropImage(sourceImg, 720, 120, 1200, 600)
+    sourceDepthImg = scaleImage(sourceDepthImg, 256, 256)
+    sourceRgbImg = scaleImage(sourceRgbImg, 256, 256)
+    destImg = newImage(512, 256)
+    pasteImage(sourceDepthImg, destImg, 0, 0, 256, 256)
+    pasteImage(sourceRgbImg, destImg, 256, 0, 512, 256)
+    saveImage(destImg, sourceImgUrl)
+    print("Saved image " + str(i+1) + " of " + str(len(files)))
 
 
-# *** Step 3/5: Process with Pix2pix. ***
+# ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+print("\n\n*** Step 3/5: Process with Pix2pix. ***\n")
 os.chdir("../..")
 os.system("python pix2pix.py --mode test --output_dir files/output --input_dir files/input --checkpoint files/model")
 
 
-# *** Step 4/5: Convert Pix2pix png output to tga and run Autotrace. ***
+# ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+print("\n\n*** Step 4/5: Convert Pix2pix png output to tga and run Autotrace. ***\n")
 at_bgcolor = "#000000"
 at_color = 16
 at_error_threshold=10
@@ -136,70 +152,86 @@ at_cmd = " -background-color=" + str(at_bgcolor) + " -color=" + str(at_color) + 
 
 os.chdir("files/output/images")
 
-try:
-    if (osName == "Windows"):
-        os.system("dir")
-        os.system("del *.tga")
-        #os.system("for %i in (*-outputs.png) do magick %i -colorspace RGB -colorspace sRGB -depth 8 -alpha off %~nxi.tga")
-        #os.system("for %i in (*.tga) do " + at_path + at_cmd + " -output=%~nxi.svg -output-format=svg %i")
-        os.system("del *.tga")
-    else:
-        os.system("ls")
-        os.system("rm *.tga")
+if (osName == "Windows"):
+    os.system("dir")
+    os.system("del *.tga")
+    try:
+        os.system("for %i in (*-outputs.png) do magick %i -colorspace RGB -colorspace sRGB -depth 8 -alpha off %~nxi.tga")
+    except:
+        print("Encountered an error doing ImageMagick batch.")
+    try:
+        os.system("for %i in (*.tga) do " + at_path + at_cmd + " -output=%~nxi.svg -output-format=svg %i")
+    except:
+        print("Encountered an error doing Autotrace batch.")
+    os.system("del *.tga")
+else:
+    os.system("ls")
+    os.system("rm *.tga")
+    try:
         os.system("for file in *-outputs.png; do convert $file $file.tga; done")
+    except:
+        print("Encountered an error doing ImageMagick batch.")
+    try:
         os.system("for file in *.tga; do " + at_path + " $file " + at_cmd + " -output-format=svg -output-file $file.svg; done")
-        os.system("rm *.tga")
-except:
-    pass
+    except:
+        print("Encountered an error doing Autotrace batch.")
+    os.system("rm *.tga")
+    
 
+# ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+print("\n\n*** Step 5/5: Create final latk file from svg and image output. ***\n")
+la = Latk(init=False)
+la.layers.append(LatkLayer())
 
-# *** Step 5/5: Create final latk file from svg and image output. ***
-la = Latk(init=True)
-
-# TODO loop through all files
 # https://code-maven.com/listing-a-directory-using-python
+filesSvg = fnmatch.filter(os.listdir("."), "*.svg")
+filesRgb = fnmatch.filter(os.listdir("."), "*-targets.png")
+filesDepth = fnmatch.filter(os.listdir("."), "*-inputs.png")
 
-paths, attr = svg2paths("frame_00050-outputs.png.tga.svg")
 pathLimit = 0.05
 minPathPoints = 3
 epsilon = 0.00005
 
-for path in paths:
-    numPoints = getPathLength(path)
-    numRange = int(numPoints)
-    if (numRange > 1):
-        coords = []
-        for i in range(numRange):
-            pt = path.point(i/(numPoints-1))
-            point = getCoordFromPathPoint(pt)
-            coord = (point[0]/255.0, point[1]/-255.0, 0)
-            if (i == 0):
-                coords.append(coord)
-            else:
-                lastCoord = coords[len(coords)-1]
-                if getDistance2D(coord, lastCoord) < pathLimit:
+for i in range(0, 10): #len(filesSvg)):
+    paths, attr = svg2paths(filesSvg[i])
+    img_depth = loadPixels(loadImage(filesDepth[i]))
+    img_rgb = loadPixels(loadImage(filesRgb[i]))
+
+    la.layers[0].frames.append(LatkFrame())
+
+    for path in paths:
+        numPoints = getPathLength(path)
+        numRange = int(numPoints)
+        if (numRange > 1):
+            coords = []
+            for i in range(numRange):
+                pt = path.point(i/(numPoints-1))
+                point = getCoordFromPathPoint(pt)
+                coord = (point[0]/255.0, point[1]/-255.0, 0)
+                if (i == 0):
                     coords.append(coord)
                 else:
-                    coords = rdp(coords, epsilon=epsilon)
-                    if (len(coords) >= minPathPoints):
-                        la.setCoords(coords)
-                    coords = []
-                    coords.append(coord)
-        coords = rdp(coords, epsilon=epsilon)            
-        if (len(coords) >= minPathPoints):
-            la.setCoords(coords)
+                    lastCoord = coords[len(coords)-1]
+                    if getDistance2D(coord, lastCoord) < pathLimit:
+                        coords.append(coord)
+                    else:
+                        coords = rdp(coords, epsilon=epsilon)
+                        if (len(coords) >= minPathPoints):
+                            la.setCoords(coords)
+                        coords = []
+                        coords.append(coord)
+            coords = rdp(coords, epsilon=epsilon)            
+            if (len(coords) >= minPathPoints):
+                la.setCoords(coords)
 
-img_depth = loadPixels(loadImage("frame_00050-inputs.png"))
-img_rgb = loadPixels(loadImage("frame_00050-targets.png"))
+    for stroke in la.layers[0].frames[len(la.layers[0].frames)-1].strokes:
+        firstCoord = restoreXY(stroke.points[0])
+        stroke.color = getPixelLoc(img_rgb, firstCoord[0], firstCoord[1])
+        for point in stroke.points:
+            coord = restoreXY(point)
+            depth = getPixelLoc(img_depth, coord[0], coord[1])[0]
+            point.co = (-point.co[0]/10.0, depth/10.0, point.co[1]/10.0)
 
-for layer in la.layers:
-    for frame in layer.frames:
-        for stroke in frame.strokes:
-            firstCoord = restoreXY(stroke.points[0])
-            stroke.color = getPixelLoc(img_rgb, firstCoord[0], firstCoord[1])
-            for point in stroke.points:
-                coord = restoreXY(point)
-                depth = getPixelLoc(img_depth, coord[0], coord[1])[0]
-                point.co = (-point.co[0]/10.0, depth/10.0, point.co[1]/10.0)
+    print("Saved image " + str(i+1) + " of " + str(len(filesSvg)))
 
-la.write("test.latk")
+la.write("output.latk")
