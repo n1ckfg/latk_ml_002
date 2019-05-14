@@ -1,49 +1,67 @@
 import sys
-import os
-import platform
-
 sys.path.insert(0, './latk.py')
 #sys.path.insert(1, './pix2pix-tensorflow')
 
+import platform
+osName = platform.system()
+
+import os
 from latk import *
 from svgpathtools import *  # https://github.com/mathandy/svgpathtools
 from PIL import Image # https://gist.github.com/n1ckfg/58b5425a1b81aa3c60c3d3af7703eb3b
 
-# 1. PIX2PIX
-os.system("python ./pix2pix-tensorflow/pix2pix.py --mode test --output_dir ./pix2pix-tensorflow/files/output --input_dir ./pix2pix-tensorflow/files/input --checkpoint ./pix2pix-tensorflow/files/model")
 
-'''
-cd files/output/images
-rm *.tga
-for file in *-outputs.png; do convert $file $file.tga; done
-for file in *.tga; do autotrace $file -background-color=000000 -color=16 -centerline -error-threshold=10 -line-threshold=0 -line-reversion-threshold=10 -output-format=svg -output-file $file.svg; done
-rm *.tga
+# *** Step 1/5: Extract frames from source movie with ffmpeg. ***
+#
 
-'''
+# *** Step 2/5: Resize to 512x256 with imagemagick or pil. ***
+#
 
-# 2. AUTOTRACE
-at_path = "autotrace"
+# *** Step 3/5: Process with Pix2pix. ***
+#os.system("python ./pix2pix-tensorflow/pix2pix.py --mode test --output_dir ./pix2pix-tensorflow/files/output --input_dir ./pix2pix-tensorflow/files/input --checkpoint ./pix2pix-tensorflow/files/model")
+
+
+# *** Step 4/5: Convert Pix2pix png output to tga and run Autotrace. ***
+at_path = "autotrace" # linux doesn't need path handled
+if (osName == "Windows"):
+	at_path = "\"C:\\Program Files\\AutoTrace\\autotrace\""
+elif (osName == "Darwin"): # Mac
+	at_path = "/Applications/autotrace.app/Contents/MacOS/autotrace"
+
 at_bgcolor = "#000000"
 at_color = 16
 at_error_threshold=10
 at_line_threshold=0
 at_line_reversion_threshold=10
-autotraceCmd = ""
 
-at_input_file="test.svg"
-at_output_file="output.svg"
+at_cmd = " -background-color=" + str(at_bgcolor) + " -color=" + str(at_color) + " -centerline -error-threshold=" + str(at_error_threshold) + "-line-threshold=" + str(at_line_threshold) + " -line-reversion-threshold=" + str(at_line_reversion_threshold)
 
-osName = platform.system()
+im_path = "convert"
+if (osName == "Windows"):
+	im_path = "magick"
+
+os.system("cd ./pix2pix-tensorflow/files/output/images")
+os.system("rm *.tga")
 
 if (osName == "Windows"):
-	at_path = "\"C:\\Program Files\\AutoTrace\\autotrace\""
-elif (osName == "Darwin"): # Mac
-	at_path = "/Applications/autotrace.app/Contents/MacOS/autotrace"
+	os.system("for %%i in (%1\\*-outputs.png) do " + im_path + " %%i -colorspace RGB -colorspace sRGB -depth 8 -alpha off %%~nxi-rgb.png")
+	os.system("for %%i in (%1\\*.tga) do " + at_path + at_cmd + " -output=%%~nxi.svg -output-format=svg %%i")
+else:
+	os.system("for file in *-outputs.png; do " + im_path + " $file $file.tga; done")
+	os.system("for file in *.tga; do " + at_path + " $file " + at_cmd + " -output-format=svg -output-file $file.svg; done")
+
+os.system("rm *.tga")
+
+
+
+
 	
-autotraceCmd = at_path + " -background-color=" + str(at_bgcolor) + " -color=" + str(at_color) + " -centerline -error-threshold=" + str(at_error_threshold) + "-line-threshold=" + str(at_line_threshold) + " -line-reversion-threshold=" + str(at_line_reversion_threshold) + " -output=" + at_output_file + " -output-format=svg " + at_input_file
 
-#os.system(autotraceCmd)
 
+os.system(autotraceCmd)
+
+
+# *** Step 5/5: Create final latk file from svg and image output. ***
 def getCoordFromPathPoint(pt):
     point = str(pt)
     point = point.replace("(","")
