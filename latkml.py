@@ -114,6 +114,10 @@ def restoreXY(point):
     return (x, y)    
 
 la = Latk(init=True)
+
+# TODO loop through all files
+# https://code-maven.com/listing-a-directory-using-python
+
 paths, attr = svg2paths("frame_00050-outputs.png.tga.svg")
 pathLimit = 0.05
 minPathPoints = 3
