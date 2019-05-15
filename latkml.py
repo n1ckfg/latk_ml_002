@@ -11,6 +11,9 @@ from latk import *
 from svgpathtools import *  # https://github.com/mathandy/svgpathtools
 from PIL import Image # https://gist.github.com/n1ckfg/58b5425a1b81aa3c60c3d3af7703eb3b
 
+input_video = "test.mov"
+input_fps = 2
+
 def getCoordFromPathPoint(pt):
     point = str(pt)
     point = point.replace("(", "")
@@ -90,10 +93,6 @@ def restoreXY(point):
 
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-input_video = "test.mov"
-input_fps = 2
-input_url = "./pix2pix-tensorflow/files/input"
-
 at_path = "autotrace" # linux doesn't need path handled
 ff_path = "ffmpeg"
 if (osName == "Windows"):
@@ -106,14 +105,34 @@ elif (osName == "Darwin"): # Mac
 # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 print("\n\n*** Step 1/5: Extract frames from source movie with ffmpeg. ***\n")
 try:
-    os.makedirs(input_url)
+    os.makedirs("./pix2pix-tensorflow/files/input")
 except:
     print("Input directory already exists.")
-os.chdir(input_url)
+try:
+    os.makedirs("./pix2pix-tensorflow/files/output")
+except:
+    print("Output directory already exists.")
+
+os.chdir("./pix2pix-tensorflow/files/input")
 if (osName == "Windows"):
     os.system("del *.png")
+    os.system("del *.tga")
+    os.system("del *.svg")
 else:
     os.system("rm *.png")
+    os.system("rm *.tga")
+    os.system("rm *.svg")
+os.chdir("../output/images")
+if (osName == "Windows"):
+    os.system("del *.png")
+    os.system("del *.tga")
+    os.system("del *.svg")
+else:
+    os.system("rm *.png")
+    os.system("rm *.tga")
+    os.system("rm *.svg")
+os.chdir("../../input")
+
 os.system(ff_path + " -i " + input_video + " -vf fps=" + str(input_fps) + " image-%05d.png")
 files = fnmatch.filter(os.listdir("."), "*.png")
 
@@ -154,7 +173,6 @@ os.chdir("files/output/images")
 
 if (osName == "Windows"):
     os.system("del *.tga")
-    os.system("del *.png")
     try:
         os.system("for %i in (*-outputs.png) do magick %i -colorspace RGB -colorspace sRGB -depth 8 -alpha off %~nxi.tga")
     except:
@@ -166,7 +184,6 @@ if (osName == "Windows"):
     os.system("del *.tga")
 else:
     os.system("rm *.tga")
-    os.system("rm *.png")
     try:
         os.system("for file in *-outputs.png; do convert $file $file.tga; done")
     except:
