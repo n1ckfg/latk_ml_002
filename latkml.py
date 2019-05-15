@@ -1,6 +1,11 @@
 import sys
 sys.path.insert(0, './latk.py')
 #sys.path.insert(1, './pix2pix-tensorflow')
+argv = sys.argv
+argv = argv[argv.index("--") + 1:]  # get all args after "--"
+input_video = str(argv[0])
+input_fps = int(argv[1])
+useDepthForContour = bool(argv[2])
 
 import platform
 osName = platform.system()
@@ -10,9 +15,6 @@ import fnmatch
 from latk import *
 from svgpathtools import *  # https://github.com/mathandy/svgpathtools
 from PIL import Image # https://gist.github.com/n1ckfg/58b5425a1b81aa3c60c3d3af7703eb3b
-
-input_video = "test.mov"
-input_fps = 2
 
 def getCoordFromPathPoint(pt):
     point = str(pt)
@@ -142,13 +144,21 @@ print("\n\n*** Step 2/5: Resize to 512x256 with pil. ***\n")
 for i, file in enumerate(files):
     sourceImgUrl = file
     sourceImg = loadImage(sourceImgUrl)
-    sourceDepthImg = cropImage(sourceImg, 80, 120, 560, 600)
-    sourceRgbImg = cropImage(sourceImg, 720, 120, 1200, 600)
-    sourceDepthImg = scaleImage(sourceDepthImg, 256, 256)
-    sourceRgbImg = scaleImage(sourceRgbImg, 256, 256)
+    sourceLeftImg = None
+    sourceRightImg = None
+
+    if (useDepthForContour == True):
+        sourceLeftImg = cropImage(sourceImg, 80, 120, 560, 600)
+        sourceRightImg = cropImage(sourceImg, 720, 120, 1200, 600)
+    else:
+        sourceRightImg = cropImage(sourceImg, 80, 120, 560, 600)
+        sourceLeftImg = cropImage(sourceImg, 720, 120, 1200, 600)
+
+    sourceLeftImg = scaleImage(sourceLeftImg, 256, 256)
+    sourceRightImg = scaleImage(sourceRightImg, 256, 256)
     destImg = newImage(512, 256)
-    pasteImage(sourceDepthImg, destImg, 0, 0, 256, 256)
-    pasteImage(sourceRgbImg, destImg, 256, 0, 512, 256)
+    pasteImage(sourceLeftImg, destImg, 0, 0, 256, 256)
+    pasteImage(sourceRightImg, destImg, 256, 0, 512, 256)
     saveImage(destImg, sourceImgUrl)
     print("Saved image " + str(i+1) + " of " + str(len(files)))
 
@@ -202,8 +212,16 @@ la.layers.append(LatkLayer())
 
 # https://code-maven.com/listing-a-directory-using-python
 filesSvg = fnmatch.filter(os.listdir("."), "*.svg")
-filesRgb = fnmatch.filter(os.listdir("."), "*-targets.png")
-filesDepth = fnmatch.filter(os.listdir("."), "*-inputs.png")
+
+filesRgb = None
+filesDepth = None
+
+if (useDepthForContour == True):
+    filesRgb = fnmatch.filter(os.listdir("."), "*-targets.png")
+    filesDepth = fnmatch.filter(os.listdir("."), "*-inputs.png")
+else:
+    filesDepth = fnmatch.filter(os.listdir("."), "*-targets.png")
+    filesRgb = fnmatch.filter(os.listdir("."), "*-inputs.png")    
 
 pathLimit = 0.05
 minPathPoints = 3
