@@ -192,7 +192,9 @@ pathLimit = 0.05
 minPathPoints = 3
 epsilon = 0.00005
 
-for i in range(0, 10): #len(filesSvg)):
+counter = 1
+
+for i in range(0, len(filesSvg)):
     paths, attr = svg2paths(filesSvg[i])
     img_depth = loadPixels(loadImage(filesDepth[i]))
     img_rgb = loadPixels(loadImage(filesRgb[i]))
@@ -232,6 +234,7 @@ for i in range(0, 10): #len(filesSvg)):
             depth = getPixelLoc(img_depth, coord[0], coord[1])[0]
             point.co = (-point.co[0]/10.0, depth/10.0, point.co[1]/10.0)
 
-    print("Saved image " + str(i+1) + " of " + str(len(filesSvg)))
+    print("Saved image " + str(counter) + " of " + str(len(filesSvg)))
+    counter += 1
 
 la.write("output.latk")
