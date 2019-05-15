@@ -16,6 +16,11 @@ from latk import *
 from svgpathtools import *  # https://github.com/mathandy/svgpathtools
 from PIL import Image # https://gist.github.com/n1ckfg/58b5425a1b81aa3c60c3d3af7703eb3b
 
+at_color = 2 # 16
+at_error_threshold = 100 # 10
+at_line_threshold = 0 # 0
+at_line_reversion_threshold = 100 # 10
+
 def getCoordFromPathPoint(pt):
     point = str(pt)
     point = point.replace("(", "")
@@ -172,11 +177,6 @@ os.system("python pix2pix.py --mode test --output_dir files/output --input_dir f
 # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 print("\n\n*** Step 4/5: Convert Pix2pix png output to tga and run Autotrace. ***\n")
 at_bgcolor = "#000000"
-at_color = 16
-at_error_threshold=10
-at_line_threshold=0
-at_line_reversion_threshold=10
-
 at_cmd = " -background-color=" + str(at_bgcolor) + " -color=" + str(at_color) + " -centerline -error-threshold=" + str(at_error_threshold) + "-line-threshold=" + str(at_line_threshold) + " -line-reversion-threshold=" + str(at_line_reversion_threshold)
 
 os.chdir("files/output/images")
