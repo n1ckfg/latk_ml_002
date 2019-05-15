@@ -16,9 +16,34 @@ from latk import *
 from svgpathtools import *  # https://github.com/mathandy/svgpathtools
 from PIL import Image # https://gist.github.com/n1ckfg/58b5425a1b81aa3c60c3d3af7703eb3b
 
+# https://www.linux.com/news/making-vector-graphics-out-bitmaps-frontline-and-autotrace
+'''
+Color count -- When set to zero, Autotrace will trace out separate regions for every color 
+that it finds. If you image has a lot of colors (as a photograph or a scanned image might) 
+you can tell Autotrace to reduce the palette to as few colors as you want.
+'''
 at_color = int(argv[3]) # 16
+
+'''
+Error Threshold -- Autotrace first finds edges in the bitmapped image, then tries to fit 
+them together into shapes. The error threshold determines how many pixels a curve may be 
+off by and still be joined with its neighbors into a shape.
+'''
 at_error_threshold = int(argv[4]) # 10
+
+'''
+Line Threshold -- Whenever Autotrace finds a spline curve, it compares it to the straight 
+line you would get by connecting its two endpoints. If the spline is within the line 
+threshold value of the straight line, Autotrace will simplify it to a line segment.
+'''
 at_line_threshold = int(argv[5]) # 0
+
+'''
+Line Reversion Threshold -- This setting attempts to do the same thing as Line Threshold: 
+reduce nearly-straight spline curves to simpler lines. But whereas Line Threshold simply 
+judges the distance between the curve and its straight line, Line Reversion Threshold 
+weights this measurement by the length of the spline.
+'''
 at_line_reversion_threshold = int(argv[6]) # 10
 
 def getCoordFromPathPoint(pt):
