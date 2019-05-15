@@ -16,10 +16,10 @@ from latk import *
 from svgpathtools import *  # https://github.com/mathandy/svgpathtools
 from PIL import Image # https://gist.github.com/n1ckfg/58b5425a1b81aa3c60c3d3af7703eb3b
 
-at_color = 2 # 16
-at_error_threshold = 100 # 10
-at_line_threshold = 0 # 0
-at_line_reversion_threshold = 100 # 10
+at_color = int(argv[3]) # 16
+at_error_threshold = int(argv[4]) # 10
+at_line_threshold = int(argv[5]) # 0
+at_line_reversion_threshold = int(argv[6]) # 10
 
 def getCoordFromPathPoint(pt):
     point = str(pt)
@@ -272,4 +272,6 @@ for i in range(0, len(filesSvg)):
     print("Saved image " + str(counter) + " of " + str(len(filesSvg)))
     counter += 1
 
-la.write("output.latk")
+finalUrl = "../../../../output.latk"
+la.write(finalUrl)
+print("\n\n*** Wrote latk file. ***\n")
