@@ -91,7 +91,7 @@ def restoreXY(point):
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 input_video = "test.mov"
-input_fps = "12"
+input_fps = 2
 input_url = "./pix2pix-tensorflow/files/input"
 
 at_path = "autotrace" # linux doesn't need path handled
@@ -114,7 +114,7 @@ if (osName == "Windows"):
     os.system("del *.png")
 else:
     os.system("rm *.png")
-os.system(ff_path + " -i " + input_video + " -vf fps=" + input_fps + " image-%05d.png")
+os.system(ff_path + " -i " + input_video + " -vf fps=" + str(input_fps) + " image-%05d.png")
 files = fnmatch.filter(os.listdir("."), "*.png")
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
@@ -153,8 +153,8 @@ at_cmd = " -background-color=" + str(at_bgcolor) + " -color=" + str(at_color) + 
 os.chdir("files/output/images")
 
 if (osName == "Windows"):
-    os.system("dir")
     os.system("del *.tga")
+    os.system("del *.png")
     try:
         os.system("for %i in (*-outputs.png) do magick %i -colorspace RGB -colorspace sRGB -depth 8 -alpha off %~nxi.tga")
     except:
@@ -165,8 +165,8 @@ if (osName == "Windows"):
         print("Encountered an error doing Autotrace batch.")
     os.system("del *.tga")
 else:
-    os.system("ls")
     os.system("rm *.tga")
+    os.system("rm *.png")
     try:
         os.system("for file in *-outputs.png; do convert $file $file.tga; done")
     except:
