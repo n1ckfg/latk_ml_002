@@ -4,9 +4,10 @@ sys.path.insert(0, './latk.py')
 argv = sys.argv
 argv = argv[argv.index("--") + 1:]  # get all args after "--"
 input_video = str(argv[0])
-input_fps = int(argv[1])
-useDepthForContour = bool(argv[2])
-minPathPoints = int(argv[3]) # 3
+camera_type = str(argv[1])
+input_fps = int(argv[2])
+useDepthForContour = bool(argv[3])
+minPathPoints = int(argv[4]) # 3
 
 import platform
 osName = platform.system()
@@ -23,21 +24,21 @@ Color count -- When set to zero, Autotrace will trace out separate regions for e
 that it finds. If you image has a lot of colors (as a photograph or a scanned image might) 
 you can tell Autotrace to reduce the palette to as few colors as you want.
 '''
-at_color = int(argv[4]) # 16
+at_color = int(argv[5]) # 16
 
 '''
 Error Threshold -- Autotrace first finds edges in the bitmapped image, then tries to fit 
 them together into shapes. The error threshold determines how many pixels a curve may be 
 off by and still be joined with its neighbors into a shape.
 '''
-at_error_threshold = int(argv[5]) # 10
+at_error_threshold = int(argv[6]) # 10
 
 '''
 Line Threshold -- Whenever Autotrace finds a spline curve, it compares it to the straight 
 line you would get by connecting its two endpoints. If the spline is within the line 
 threshold value of the straight line, Autotrace will simplify it to a line segment.
 '''
-at_line_threshold = int(argv[6]) # 0
+at_line_threshold = int(argv[7]) # 0
 
 '''
 Line Reversion Threshold -- This setting attempts to do the same thing as Line Threshold: 
@@ -45,7 +46,7 @@ reduce nearly-straight spline curves to simpler lines. But whereas Line Threshol
 judges the distance between the curve and its straight line, Line Reversion Threshold 
 weights this measurement by the length of the spline.
 '''
-at_line_reversion_threshold = int(argv[7]) # 10
+at_line_reversion_threshold = int(argv[8]) # 10
 
 def getCoordFromPathPoint(pt):
     point = str(pt)
@@ -134,6 +135,12 @@ if (osName == "Windows"):
 elif (osName == "Darwin"): # Mac
     at_path = "/Applications/autotrace.app/Contents/MacOS/autotrace"
 
+kc = KinectConverter()
+kc.setModel(camera_type)
+kc.resolutionX = 256
+kc.resolutionY = 256
+kc.maxDepthVals = 255
+kc.init()
 
 # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 print("\n\n*** Step 1/5: Extract frames from source movie with ffmpeg. ***\n")
@@ -251,6 +258,7 @@ else:
 
 pathLimit = 0.05
 epsilon = 0.00005
+scaleDepthVals = 1000
 
 counter = 1
 
@@ -292,7 +300,10 @@ for i in range(0, len(filesSvg)):
         for point in stroke.points:
             coord = restoreXY(point)
             depth = getPixelLoc(img_depth, coord[0], coord[1])[0]
-            point.co = (-point.co[0]/10.0, depth/10.0, point.co[1]/10.0)
+
+            finalPoint = kc.convertDepthToWorld(point.co[0], point.co[1], depth)
+
+            point.co = (-finalPoint[0]/scaleDepthVals, finalPoint[2]/scaleDepthVals, -finalPoint[1]/scaleDepthVals)
 
     print("Saved frame " + str(counter) + " of " + str(len(filesSvg)))
     counter += 1
