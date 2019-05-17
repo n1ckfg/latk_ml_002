@@ -1,6 +1,8 @@
 import sys
 sys.path.insert(0, './latk.py')
+sys.path.insert(1, './kinect_converter.py')
 #sys.path.insert(1, './pix2pix-tensorflow')
+
 argv = sys.argv
 argv = argv[argv.index("--") + 1:]  # get all args after "--"
 input_video = str(argv[0])
@@ -15,6 +17,7 @@ osName = platform.system()
 import os
 import fnmatch
 from latk import *
+from kinect_converter import *
 from svgpathtools import *  # https://github.com/mathandy/svgpathtools
 from PIL import Image # https://gist.github.com/n1ckfg/58b5425a1b81aa3c60c3d3af7703eb3b
 

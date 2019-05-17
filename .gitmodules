@@ -13,3 +13,6 @@
 [submodule "ffmpeg-python"]
 	path = ffmpeg-python
 	url = https://github.com/n1ckfg/ffmpeg-python
+[submodule "kinect_converter.py"]
+	path = kinect_converter.py
+	url = https://github.com/n1ckfg/kinect_converter.py
