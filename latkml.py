@@ -138,8 +138,7 @@ if (osName == "Windows"):
 elif (osName == "Darwin"): # Mac
     at_path = "/Applications/autotrace.app/Contents/MacOS/autotrace"
 
-kc = KinectConverter()
-kc.setModel(camera_type)
+kc = KinectConverter(camera_type)
 kc.resolutionX = 256
 kc.resolutionY = 256
 kc.maxDepthVals = 255
@@ -261,7 +260,7 @@ else:
 
 pathLimit = 0.05
 epsilon = 0.00005
-scaleDepthVals = 1000
+scaleDepthVals = 0.1
 
 counter = 1
 
@@ -306,7 +305,8 @@ for i in range(0, len(filesSvg)):
 
             finalPoint = kc.convertDepthToWorld(point.co[0], point.co[1], depth)
 
-            point.co = (-finalPoint[0]/scaleDepthVals, finalPoint[2]/scaleDepthVals, -finalPoint[1]/scaleDepthVals)
+            offset = (0.5, 1, 255)
+            point.co = ((-finalPoint[0] + offset[0]) * scaleDepthVals, (finalPoint[2] + offset[2]) * scaleDepthVals, (-finalPoint[1] + offset[1]) * scaleDepthVals)
 
     print("Saved frame " + str(counter) + " of " + str(len(filesSvg)))
     counter += 1
