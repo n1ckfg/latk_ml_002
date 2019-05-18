@@ -91,8 +91,8 @@ def restoreXY(point):
 def holoflixToPix2Pix(file, useDepthForContour):
     sourceImgUrl = file
     sourceImg = loadImage(sourceImgUrl)
-    sourceLeftImg = None
-    sourceRightImg = None
+    sourceLeftImg = newImage(480, 480)
+    sourceRightImg = newImage(480, 480)
 
     if (useDepthForContour == True):
         sourceLeftImg = cropImage(sourceImg, 80, 120, 560, 600)
@@ -101,17 +101,15 @@ def holoflixToPix2Pix(file, useDepthForContour):
         sourceRightImg = cropImage(sourceImg, 80, 120, 560, 600)
         sourceLeftImg = cropImage(sourceImg, 720, 120, 1200, 600)
 
-    sourceLeftImg = scaleImage(sourceLeftImg, 256, 256)
-    sourceRightImg = scaleImage(sourceRightImg, 256, 256)
-    destImg = newImage(512, 256)
-    pasteImage(sourceLeftImg, destImg, 0, 0, 256, 256)
-    pasteImage(sourceRightImg, destImg, 256, 0, 512, 256)
+    destImg = newImage(960, 480)
+    pasteImage(sourceLeftImg, destImg, 0, 0, 480, 480)
+    pasteImage(sourceRightImg, destImg, 480, 0, 960, 480)
     saveImage(destImg, sourceImgUrl)
 
 def svgToLatk(finalUrl, camera_type, useDepthForContour, minPathPoints):
     kc = KinectConverter(camera_type)
-    kc.resolutionX = 256
-    kc.resolutionY = 256
+    #kc.resolutionX = 256
+    #kc.resolutionY = 256
     kc.maxDepthVals = 255
     kc.init()
 
