@@ -108,10 +108,6 @@ def holoflixToPix2Pix(file, useDepthForContour):
 
 def svgToLatk(finalUrl, camera_type, useDepthForContour, minPathPoints):
     kc = KinectConverter(camera_type)
-    kc.resolutionX = 480
-    kc.resolutionY = 480
-    kc.maxDepthVals = 255
-    kc.init()
 
     la = Latk(init=False)
     la.layers.append(LatkLayer())
@@ -176,8 +172,8 @@ def svgToLatk(finalUrl, camera_type, useDepthForContour, minPathPoints):
 
                 finalPoint = kc.convertDepthToWorld(point.co[0], point.co[1], depth)
 
-                offset = (0, 0, kc.maxDepthVals)
-                point.co = ((-finalPoint[0] + offset[0]) * scaleDepthVals, (finalPoint[2] + offset[2]) * scaleDepthVals, (-finalPoint[1] + offset[1]) * scaleDepthVals)
+                offset = (0, 0, kc.maxDepthVals/10.0)
+                point.co = ((-finalPoint[0] + offset[0]) * scaleDepthVals, (finalPoint[2]/10.0 + offset[2]) * scaleDepthVals, (-finalPoint[1] + offset[1]) * scaleDepthVals)
 
         print("Saved frame " + str(counter) + " of " + str(len(filesSvg)))
         counter += 1
