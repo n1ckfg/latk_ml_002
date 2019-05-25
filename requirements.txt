@@ -2,3 +2,4 @@ numpy
 svgpathtools
 pillow
 tensorflow-gpu
+scikit-image
