@@ -174,7 +174,7 @@ def svgToLatk(finalUrl, camera_type, useDepthForContour, minPathPoints):
 
                 #offset = (0, 0, 0) #kc.maxBitDepth/10.0)
                 #point.co = ((-finalPoint[0] + offset[0]) * scaleDepthVals, (finalPoint[2]/10.0 + offset[2]) * scaleDepthVals, (-finalPoint[1] + offset[1]) * scaleDepthVals)
-                point.co = (finalPoint[0], finalPoint[2], finalPoint[1])
+                point.co = (finalPoint[0], finalPoint[2], -finalPoint[1])
 
         print("Saved frame " + str(counter) + " of " + str(len(filesSvg)))
         counter += 1
