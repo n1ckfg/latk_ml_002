@@ -4,6 +4,6 @@ rem https://serverfault.com/questions/95686/change-current-directory-to-the-batc
 cd /D %~dp0
 
 rem file, camera type, fps, use depth for contour, min path points, num colors, error threshold, line threshold, line reversion threshold
-python latkml.py -- %1 Structure 1 True 4 2 200 50 50
+python latkml.py -- %1 Structure 12 True 4 2 200 50 50
 
 @pause
