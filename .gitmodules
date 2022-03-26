@@ -4,9 +4,6 @@
 [submodule "pix2pix-tensorflow"]
 	path = pix2pix-tensorflow
 	url = https://github.com/n1ckfg/pix2pix-tensorflow
-[submodule "tilt_browser"]
-	path = tilt_browser
-	url = https://github.com/n1ckfg/tilt_browser
 [submodule "autotrace"]
 	path = autotrace
 	url = https://github.com/n1ckfg/autotrace
