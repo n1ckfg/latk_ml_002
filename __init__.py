@@ -97,8 +97,8 @@ class latkml002Properties_Panel(bpy.types.Panel):
         latkml002 = scene.latkml002_settings
 
         row = layout.row()
-        row.operator("latkml002_button.allframes")
         row.operator("latkml002_button.singleframe")
+        row.operator("latkml002_button.allframes")
         #row.prop(latkml002, "material_shader_mode")
 
 classes = (
