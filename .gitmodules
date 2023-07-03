@@ -13,3 +13,6 @@
 [submodule "kinect_converter.py"]
 	path = kinect_converter.py
 	url = https://github.com/n1ckfg/kinect_converter.py
+[submodule "pytorch-CycleGAN-and-pix2pix"]
+	path = pytorch-CycleGAN-and-pix2pix
+	url = https://github.com/n1ckfg/pytorch-CycleGAN-and-pix2pix
