@@ -16,3 +16,6 @@
 [submodule "pytorch-CycleGAN-and-pix2pix"]
 	path = pytorch-CycleGAN-and-pix2pix
 	url = https://github.com/n1ckfg/pytorch-CycleGAN-and-pix2pix
+[submodule "pix2pixHD"]
+	path = pix2pixHD
+	url = https://github.com/n1ckfg/pix2pixHD
