@@ -1,4 +1,4 @@
-# latk-ml-002
+# latk_ml_002
 ## pipeline
 ### pix2pix-tensorflow
 ### autotrace
